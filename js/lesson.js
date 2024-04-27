@@ -1,222 +1,189 @@
-// PHONE CHECKER
-const phoneInput = document.querySelector('#phone_input');
-const phoneButton = document.querySelector('#phone_button');
-const phoneResult = document.querySelector('#phone_result');
-const phoneBlock = document.querySelector('#phone_block')
+//  PHONE CHECKER
 
-const regExp =/^\+996 [2579]\d{2} \d{2}-\d{2}-\d{2}$/
+const phoneInput = document.querySelector('#phone_input')
+const phoneButton = document.querySelector('#phone_button')
+const phoneSpan = document.querySelector('#phone_result')
+const blockPhone = document.querySelector('.inner_phone_block')
 
-phoneButton.addEventListener('click', () => {
-    if (regExp.test(phoneInput.value)) {
-        phoneResult.innerHTML = 'Поздравляю ты последователь Киры! &#127822;'
-        phoneResult.style.color = 'green'
-        phoneBlock.classList.add('correct')
-        phoneBlock.classList.remove('incorrect')
-    } else {
-        phoneResult.innerHTML = 'Кира убил тебя &#9760;'
-        phoneResult.style.color = 'red'
-        phoneBlock.classList.add('incorrect')
-        phoneBlock.classList.remove('correct')
+const regExp=/^\+996 [2579]\d{2} \d{2}-\d{2}-\d{2}$/
+
+phoneButton.addEventListener('click',()=> {
+    if (regExp.test(phoneInput.value.trim())){
+        phoneSpan.innerHTML='ok'
+        phoneSpan.style.color='green'
+        blockPhone.style.boxShadow='rgba(38, 246, 82, 0.25) 0px 30px 60px -18px inset, rgba(10, 114, 3, 0.3) 0px 50px 100px -20px inset'
+    } else  {
+        phoneSpan.innerHTML='not ok'
+        phoneSpan.style.color='red'
+        blockPhone.style.boxShadow='rgba(243, 70, 70, 0.25) 0px 30px 60px -18px inset, rgba(243, 21, 2, 0.3) 0px 50px 100px -20px inset'
     }
-});
+})
 
-// TAB SLIDER
-const tabContents= document.querySelectorAll('.tab_content_block');
-const tabs = document.querySelectorAll('.tab_content_item');
-const tabsParent = document.querySelector('.tab_content_items');
-let currentSlide = 0 ;
+//TAB SLIDER
 
-const hideTabContents = () => {
-    tabContents.forEach((item)=> {
-        item.style.display = 'none'
-    })
-    tabs.forEach((item) => {
-        item.classList.remove('tab_content_item_active')
+const tabContents = document.querySelectorAll('.tab_content_block')
+const tabs = document.querySelectorAll('.tab_content_item')
+const tabsParent =document.querySelectorAll('.tab_content_items')
+
+
+const hideContent = () => {
+    tabContents.forEach((content)=>{
+        content.style.display='none'
     })
 
-};
-
-const showTabContents = (index = 0) => {
-    tabContents[index].style.display = 'block'
-    tabs[index].classList.add('tab_content_item_active')
-};
-
-hideTabContents();
-showTabContents();
-
-tabsParent.onclick = (event) => {
-    if (event.target.classList.contains('tab_content_item')){
-        tabs.forEach((tabItem,tabIndex)=>{
-            if (event.target=== tabItem){
-                hideTabContents()
-                showTabContents(tabIndex)
-            }
-        })
-    }
-};
-function nextSlide() {
-    tabContents[currentSlide].style.display = 'none'
-    tabs[currentSlide].classList.remove('tab_content_item_active')
-    currentSlide = (currentSlide + 1) % tabContents.length
-    tabContents[currentSlide].style.display = 'block'
-    tabs[currentSlide].classList.add('tab_content_item_active')
+    tabs.forEach((tab)=> {
+        tab.classList.remove('tab_content_item_active')
+    })
 }
 
-setInterval(nextSlide,3000);
+const showTabContent=(index=0)=>{
+    tabContents[index].style.display='flex'
+    tabs[index].classList.add('tab_content_item_active')
+}
+
+hideContent()
+showTabContent()
+
+tabsParent.forEach((parent)=>{
+    parent.onclick=(event)=>{
+        if(event.target.classList.contains('tab_content_item')){
+            tabs.forEach((tab,tabIndex)=>{
+                if(event.target===tab){
+                    hideContent()
+                    showTabContent(tabIndex)
+                }
+            })
+        }
+    }
+})
+
+let interval
+
+const autoTabs =(i=0)=> {
+    interval = setInterval(()=>{
+        i++
+        if( i > tabContents.length-1){
+            i=0
+        }
+        hideContent()
+        showTabContent(i)
+    },3000)
+}
+autoTabs()
+
+tabs.forEach((tab)=>{
+    tab.onclick=(e)=>{
+        clearInterval(interval)
+        autoTabs(Array.from(tabs).indexOf(e.target))
+    }
+})
 
 //CONVERTER
 
-//DRY - Don't repeat yourself
+const somInput=document.querySelector('#som')
+const usdInput = document.querySelector('#usd')
+const eurInput = document.querySelector('#eur')
 
-const somInput = document.querySelector('#som');
-const usdInput = document.querySelector('#usd');
-const eurInput = document.querySelector('#eur');
-
-const converter = (element, targetElement, current, data) => {
-    element.oninput = () => {
-        if (element.value === '') {
-            targetElement.value = ''
-            eurInput.value = ''
-            return
-        }
-
-        switch (current) {
-            case 'som':
-                targetElement.value = (element.value / data.usd).toFixed(2)
-                eurInput.value = (element.value / data.eur).toFixed(2)
-                break;
-            case 'usd':
-                targetElement.value = (element.value * data.usd).toFixed(2)
-                eurInput.value = (targetElement.value / data.eur).toFixed(2)
-                break;
-            case 'eur':
-                targetElement.value = (element.value * data.eur).toFixed(2)
-                usdInput.value = (targetElement.value / data.usd).toFixed(2)
-                break;
-            default:
-                break;
-        }
-    }
-};
-
-const fetchData1 = async () => {
-    try {
-        const response = await fetch('../data/converter.json')
-        const data = await response.json()
-
-        converter(somInput, usdInput, 'som', data);
-        converter(usdInput, somInput, 'usd', data);
-        converter(eurInput, somInput, 'eur', data);
-
-        eurInput.oninput = () => {
-            if (eurInput.value === '') {
-                usdInput.value = ''
-                somInput.value = ''
-                return;
-            }
-            const eurValue = parseFloat(eurInput.value)
-            usdInput.value = (eurValue * data.usd).toFixed(2)
-            somInput.value = (eurValue * data.eur / data.usd).toFixed(2)
-        };
-    } catch (error) {
-        console.error('Error fetching data:', error)
-    }
-};
-
-fetchData1();
-
-document.addEventListener('DOMContentLoaded', function() {
-    const btnSend = document.querySelector('#converter-btn')
-    const converterResult = document.querySelector('#converter_result')
-
-    btnSend.addEventListener('click', function() {
-        const randomNumber = Math.floor(Math.random() * 100) + 1
-        const text = `Ты последователь Киры и твой уровень веры: ${randomNumber}% &#127822;`
-        converterResult.style.color = 'darkGreen'
-        converterResult.innerHTML = text
-    })
-});
-
-// CARD SWITCHER
-
-const btnPrev = document.querySelector('#btn-prev');
-const btnNext = document.querySelector('#btn-next');
-const cardBlock = document.querySelector('.card');
-
-let count = 1;
-
-const fetchData = async (count) => {
-    try {
-        const response = await fetch(`https://jsonplaceholder.typicode.com/todos/${count}`)
-        const data = await response.json()
-        updateCardUI(data)
-    } catch (error) {
-        console.error('Error', error)
-    }
-};
-
-const updateCardUI = (data) => {
-    cardBlock.innerHTML = `
-        <p>${data.title}</p>
-        <p style="color:${data.completed ? 'green' : 'red'}">
-            ${data.completed}
-        </p>
-        <span>id: ${data.id}</span>
-    `;
-};
-
-const updateCount = (increment) => {
-    count = (count + increment - 1 + 200) % 200 + 1
-};
-
-btnNext.onclick = () => {
-    updateCount(1)
-    fetchData(count).catch(error => console.error('Error', error))
-};
-
-btnPrev.onclick = () => {
-    updateCount(-1)
-    fetchData(count).catch(error => console.error('Error', error))
-};
-
-fetch('https://jsonplaceholder.typicode.com/posts')
-    .then(response => response.json())
-    .then(data => console.log(data))
-    .catch(error => console.error('Error', error))
-
-fetchData(1);
-
-//WEATHER
-
-const cityInput = document.querySelector('.cityName');
-const citySpan = document.querySelector('.city');
-const tempSpan = document.querySelector('.temp');
-const BASE_URL ='http://api.openweathermap.org';
-const API_KEY = 'e417df62e04d3b1b111abeab19cea714';
-
-const getTemperatureSymbol = (temperature) => {
-    if (temperature >= -15 && temperature < 0) {
-        return '&#9729;'
-    } else if (temperature >= 0 && temperature < 15) {
-        return '&#127780;'
-    } else if (temperature >= 15) {
-        return '&#9728;'
-    } else {
-        return '&#10052;'
-    }
-};
-
-const searchCity = async () => {
-    cityInput.oninput = async function(event) {
+const converter = (element,targetElem,secondTargetElem,current) =>{
+    element.oninput= async ()=>{
         try {
-            const response = await fetch(`${BASE_URL}/data/2.5/weather?q=${event.target.value}&appid=${API_KEY}`)
+            const response = await fetch('../data/converter.json')
             const data = await response.json()
-            citySpan.innerHTML = data.name ? data.name : 'City is not found'
-            tempSpan.innerHTML = data.main?.temp ? Math.round(data.main?.temp - 273) + '&deg;C ' + getTemperatureSymbol(Math.round(data.main?.temp - 273)) : '...'
+
+            switch (current) {
+                case 'som':
+                    targetElem.value=(element.value / data.usd).toFixed(2)
+                    secondTargetElem.value=(element.value / data.eur).toFixed(2)
+                    break
+                case 'usd':
+                    targetElem.value=(element.value * data.usd).toFixed(2)
+                    secondTargetElem.value=(element.value * data.usdEur).toFixed(2)
+                    break
+                case 'eur':
+                    targetElem.value=(element.value * data.eur).toFixed(2)
+                    secondTargetElem.value=(element.value / data.usdEur).toFixed(2)
+                    break
+                default:
+                    break
+            }
+            element.value === '' && (targetElem.value = '' || (secondTargetElem.value =''))
         } catch (error) {
-            console.error('Error', error)
+            console.log(error)
         }
+
     }
 }
 
-searchCity();
+converter(somInput,usdInput,eurInput,'som')
+converter(usdInput,somInput,eurInput,'usd')
+converter(eurInput,somInput,usdInput,'eur')
+
+// CARD SWITCHER
+
+const cardBlock = document.querySelector('.card')
+const btnPrev = document.querySelector('#btn-prev')
+const btnNext = document.querySelector('#btn-next')
+
+let count = 1
+
+const showCard = async ()=> {
+    try {
+        const response = await fetch(`https://jsonplaceholder.typicode.com/todos/${count}`)
+        const data = await response.json()
+        cardBlock.innerHTML= `
+        <p>${data.title}</p>
+        <p style="color: ${data.completed ? 'green' : 'red'}">${data.completed}</p>
+        <span>${data.id}</span>
+        `
+    } catch (error) {
+        console.log(error)
+    }
+
+}
+showCard()
+
+btnNext.onclick = ()=> {
+    count++
+    if( count > 200){
+        count=1
+    }
+    showCard()
+}
+
+btnPrev.onclick = ()=> {
+    count--
+    if( count < 1){
+        count=200
+    }
+    showCard()
+}
+
+// WEATHER
+
+const searchInput = document.querySelector('.cityName')
+const city = document.querySelector('.city')
+const temp = document.querySelector('.temp')
+
+const API_KEY = 'e417df62e04d3b1b111abeab19cea714'
+const URL='http://api.openweathermap.org/data/2.5/weather'
+const citySearch = () =>{
+    searchInput.oninput = async (event) =>{
+        try {
+            const response = await fetch(`${URL}?q=${event.target.value}&appid=${API_KEY}`)
+            const data = await response.json()
+            city.innerHTML= data.name ? data.name : 'город не найден...'
+            temp.innerHTML= data.main?.temp ? Math.round(data.main?.temp - 273) + '&deg;C' : '...'
+        } catch (error){
+            console.log(error)
+        }
+    }
+}
+citySearch()
+
+
+
+
+
+
+
+

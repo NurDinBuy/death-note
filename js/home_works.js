@@ -1,112 +1,99 @@
-  /* GMAIL BLOCK */
-const gmailInput = document.querySelector('#gmail_input');
-const gmailButton = document.querySelector('#gmail_button');
-const gmailResult = document.querySelector('#gmail_result');
-const gmailBlock = document.querySelector('.gmail_block');
+// GMAIL BLOCK
 
-const regExp = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
+const gmailInput=document.querySelector('#gmail_input')
+const gmailButton= document.querySelector('#gmail_button')
+const gmailResult = document.querySelector('#gmail_result')
+const gmailBlock = document.querySelector('.form_gmail')
 
-gmailButton.addEventListener('click',() =>{
-    if (regExp.test(gmailInput.value)){
-        gmailResult.innerHTML = 'Поздравляю ты прошел 1 этап проверки &#128522;'
-        gmailResult.style.color = 'green'
-        gmailBlock.classList.add('correct')
-        gmailBlock.classList.remove('incorrect');
-    }else {
-        gmailResult.innerHTML = 'Эл подезревает что-ты шпион Киры &#128544;'
-        gmailResult.style.color = 'red'
-        gmailBlock.classList.add('incorrect')
-        gmailBlock.classList.remove('correct')
+const regExp=/^[a-zA-Z0-9._-]{3,}@gmail\.com$/
+
+gmailButton.addEventListener('click',()=> {
+    if (regExp.test(gmailInput.value.trim())){
+        gmailResult.innerHTML='Почта валидна'
+        gmailResult.style.color='green'
+        gmailBlock.style.boxShadow='rgba(121, 210, 118, 0.25) 0 50px 100px -20px, rgba(57, 238, 43, 0.87) 0 30px 60px -30px, rgba(25, 64, 10, 0.35) 0 -2px 6px 0 inset'
+    } else  {
+        gmailResult.innerHTML='Почта не валидна'
+        gmailResult.style.color='red'
+        gmailBlock.style.boxShadow='rgba(238, 25, 32, 0.25) 0 50px 100px -20px, rgba(243, 6, 41, 0.87) 0 30px 60px -30px, rgba(190, 2, 30, 0.35) 0 -2px 6px 0 inset'
     }
-});
 
-/* MOVE BLOCK */
+})
 
-  const childBlocks = document.querySelectorAll('.child_block');
-  const parentBlock = document.querySelector('.parent_block');
-  const mainWidth = parentBlock.offsetWidth - 50;
-  const mainHeight = parentBlock.offsetHeight - 50;
-  let positionsX = [0, 50, 100, 150];
-  let positionsY = [0, 50, 100, 150];
-  let moveRights = [true, true, true, true];
-  let moveDowns = [true, true, true, true];
 
-  const moveBlocks = () => {
-      childBlocks.forEach((childBlock, index) => {
-          if (moveRights[index] && positionsX[index] < mainWidth) {
-              positionsX[index] += 2
-              childBlock.style.left = `${positionsX[index]}px`
-          } else if (!moveRights[index] && positionsX[index] > 0) {
-              positionsX[index] -= 2
-              childBlock.style.left = `${positionsX[index]}px`
-          } else if (moveDowns[index] && positionsY[index] < mainHeight) {
-              positionsY[index] += 2
-              childBlock.style.top = `${positionsY[index]}px`
-          } else if (!moveDowns[index] && positionsY[index] > 0) {
-              positionsY[index] -= 2
-              childBlock.style.top = `${positionsY[index]}px`
-          }
-          if (positionsX[index] >= mainWidth && positionsY[index] >= mainHeight) {
-              moveRights[index] = false
-              moveDowns[index] = false
-          } else if (positionsX[index] <= 0 && positionsY[index] <= 0) {
-              moveRights[index] = true
-              moveDowns[index] = true
-          }
+// Move Block
 
-          let hue = (index * 60 + positionsX[index] + positionsY[index]) % 360
-          childBlock.style.backgroundColor = `hsl(${hue}, 100%, 50%)`
-      })
-      setTimeout(moveBlocks, 5);
-  };
+const parentBlock=document.querySelector('.parent_block')
+const childBlock = document.querySelector('.child_block')
 
-  moveBlocks();
+let positionX = 0
+let positionY=0
+let positionZ=parentBlock.offsetWidth - childBlock.offsetWidth
+let positionC=parentBlock.offsetHeight- childBlock.offsetHeight
 
-/*-------STOP WATCH------ */
 
-const buttonStart = document.getElementById('start');
-const buttonStop = document.getElementById('stop');
-const buttonReset = document.getElementById('reset');
-let timeBlock = document.getElementById('seconds');
-let time = 0;
-let interval;
+const maxOffsetWidth = parentBlock.offsetWidth - childBlock.offsetWidth
+const maxOffsetHeight = parentBlock.offsetHeight-childBlock.offsetHeight
 
-function startCounter() {
-    if (!interval) {
-        interval = setInterval(() => {
-            time++;
-            timeBlock.innerHTML = time;
-            buttonStart.disabled = true;
-            buttonStop.disabled = false;
-        }, 1000)
+const moveBlock = () => {
+    if (positionX < maxOffsetWidth ){
+        positionX++
+        childBlock.style.left = `${positionX}px`
+        requestAnimationFrame(moveBlock)
+    } else if (positionY < maxOffsetHeight){
+        positionY++
+        childBlock.style.top = `${positionY}px`
+        requestAnimationFrame(moveBlock)
+    } else if (positionZ > 0){
+        positionZ--
+        childBlock.style.left = `${positionZ}px`
+        requestAnimationFrame(moveBlock)
+    } else if (positionC > 0){
+        positionC--
+        childBlock.style.top = `${positionC}px`
+        requestAnimationFrame(moveBlock)
+    }else {
+        positionY = 0
+        positionX = 0
+        positionZ = parentBlock.offsetWidth - childBlock.offsetWidth
+        positionC = parentBlock.offsetHeight - childBlock.offsetHeight
+        requestAnimationFrame(moveBlock)
     }
 }
+moveBlock()
 
-buttonStart.addEventListener('click', startCounter);
+// STOP WATCH
 
-buttonStop.addEventListener('click', () => {
-    clearInterval(interval);
-    interval = null;
-    buttonStart.disabled = false;
-    buttonStop.disabled = true;
-});
+const seconds = document.querySelector('#seconds')
 
-buttonReset.addEventListener('click', () => {
-    clearInterval(interval);
-    setTimeout(()=>{
-    function reset (){
-        interval = null
-        time=0
-        timeBlock.innerHTML=time
-        buttonStart.disabled=false
-        buttonStop.disabled=true
+const start = document.querySelector('#start')
+const stop = document.querySelector('#stop')
+const reset = document.querySelector('#reset')
+
+let count = 0
+let run = false
+let interval = null
+start.addEventListener('click', ()=>{
+    if (run !== true){
+        run=true
+        interval = setInterval(()=> {
+            count++
+            seconds.innerHTML=`${count}`
+        },1000)
     }
-    reset()
-    },800);
-});
 
+    stop.addEventListener('click',()=> {
+        clearInterval(interval)
+        run=false
+    })
 
-
+    reset.addEventListener('click', ()=> {
+        clearInterval(interval)
+        run=false
+        count = 0
+        seconds.innerHTML = `${count}`
+    })
+})
 
 
 
